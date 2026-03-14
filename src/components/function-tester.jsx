@@ -11,8 +11,11 @@ function ExerciseStart({ handleClick, output, children }) {
       {children}
 
       <p>
-        Save it, then run <code>netlify dev</code> to test locally. Check your
-        work by clicking the button below!
+        This function calls the{" "}
+        <a href="https://catfact.ninja/">Cat Facts API</a>, a free public API,
+        to return a random cat fact. Save the file, then run{" "}
+        <code>netlify dev</code> to test locally. Check your work by clicking
+        the button below!
       </p>
 
       {output && (
@@ -35,24 +38,33 @@ function ExerciseStart({ handleClick, output, children }) {
   );
 }
 
-function ExerciseFinish() {
+function ExerciseFinish({ fact }) {
   return (
     <>
       <h2>You did it!</h2>
       <p>
-        You’ve successfully created your first Netlify Function! Great work!
+        You've successfully created your first Netlify Function! It called a
+        public API and returned this cat fact:
       </p>
+      <blockquote>{fact}</blockquote>
     </>
   );
 }
 
 export default function FunctionTester({ children }) {
   const [output, setOutput] = useState();
+  const [fact, setFact] = useState();
 
   function handleClick() {
     fetch("/.netlify/functions/hello-world")
-      .then((res) => res.text())
-      .then((result) => setOutput(result))
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.text();
+      })
+      .then((result) => {
+        setFact(result);
+        setOutput(null);
+      })
       .catch((err) => {
         console.log(err);
         setOutput(
@@ -62,8 +74,8 @@ run \`netlify dev\` in your CLI.`
       });
   }
 
-  return output === "hello world!" ? (
-    <ExerciseFinish />
+  return fact ? (
+    <ExerciseFinish fact={fact} />
   ) : (
     <ExerciseStart handleClick={handleClick} output={output}>
       {children}
