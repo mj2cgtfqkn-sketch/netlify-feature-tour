@@ -20,9 +20,15 @@ import Layout from '../components/layout.astro';
   }
 }
 
-@media (min-width: 1050px) {
+@media (min-width: 850px) {
   .steps {
-    grid-template-columns: repeat(4, min(calc(25% - 1.5rem), 250px));
+    grid-template-columns: repeat(3, min(calc(33% - 1.5rem), 250px));
+  }
+}
+
+@media (min-width: 1300px) {
+  .steps {
+    grid-template-columns: repeat(5, min(calc(20% - 1.6rem), 250px));
   }
 }
 
@@ -102,6 +108,18 @@ import Layout from '../components/layout.astro';
       </p>
       <a href="/netlify-forms" class="button">
         Learn more <span class="sr-only">about Netlify Forms</span>
+      </a>
+    </section>
+
+    <section class="step">
+      <h2 class="stepHeading">הזמנות מטבח</h2>
+      <p>
+        מערכת ניהול הזמנות מטבח בזמן אמת,
+        <strong>מסונכרנת עם iPlan</strong>
+        להצגת הזמנות, עדכון סטטוס ומעקב אחר ביצוע.
+      </p>
+      <a href="/kitchen" class="button">
+        כניסה למטבח
       </a>
     </section>
   </main>
