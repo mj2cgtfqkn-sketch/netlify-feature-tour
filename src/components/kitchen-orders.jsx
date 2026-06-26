@@ -92,13 +92,80 @@ function OrderCard({ order, onStatusChange }) {
   );
 }
 
+const DEMO_ORDERS = [
+  {
+    id: "ORD-1001",
+    table: 5,
+    items: [
+      { name: "המבורגר קלאסי", quantity: 2, notes: "ללא בצל" },
+      { name: "צ'יפס", quantity: 2, notes: "" },
+      { name: "סלט קיסר", quantity: 1, notes: "רוטב בצד" },
+    ],
+    status: "new",
+    priority: "normal",
+    createdAt: new Date(Date.now() - 3 * 60000).toISOString(),
+    source: "iPlan",
+  },
+  {
+    id: "ORD-1002",
+    table: 12,
+    items: [
+      { name: "פיצה מרגריטה", quantity: 1, notes: "" },
+      { name: "פסטה בולונז", quantity: 2, notes: "חריף" },
+    ],
+    status: "in_progress",
+    priority: "high",
+    createdAt: new Date(Date.now() - 8 * 60000).toISOString(),
+    source: "iPlan",
+  },
+  {
+    id: "ORD-1003",
+    table: 3,
+    items: [
+      { name: "שניצל", quantity: 3, notes: "" },
+      { name: "אורז", quantity: 3, notes: "" },
+      { name: "חומוס", quantity: 2, notes: "" },
+    ],
+    status: "new",
+    priority: "urgent",
+    createdAt: new Date(Date.now() - 1 * 60000).toISOString(),
+    source: "iPlan",
+  },
+  {
+    id: "ORD-1004",
+    table: 8,
+    items: [
+      { name: "סטייק אנטריקוט", quantity: 1, notes: "מדיום ריר" },
+      { name: "תפוחי אדמה אפויים", quantity: 1, notes: "" },
+      { name: "יין אדום", quantity: 2, notes: "" },
+    ],
+    status: "new",
+    priority: "normal",
+    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
+    source: "iPlan",
+  },
+  {
+    id: "ORD-1005",
+    table: 1,
+    items: [
+      { name: "שקשוקה", quantity: 2, notes: "" },
+      { name: "לחם טאבון", quantity: 2, notes: "" },
+    ],
+    status: "completed",
+    priority: "normal",
+    createdAt: new Date(Date.now() - 20 * 60000).toISOString(),
+    source: "iPlan",
+  },
+];
+
 export default function KitchenOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastSync, setLastSync] = useState(null);
-  const [filter, setFilter] = useState("active"); // "active", "all", "new", "in_progress", "completed"
+  const [filter, setFilter] = useState("active");
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [demoMode, setDemoMode] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -109,17 +176,29 @@ export default function KitchenOrders() {
         setOrders(data.orders);
         setLastSync(data.syncedAt);
         setError(null);
+        setDemoMode(false);
       } else {
         throw new Error(data.error || "Failed to fetch orders");
       }
     } catch (err) {
-      setError(`שגיאת סנכרון עם iPlan: ${err.message}`);
+      if (!demoMode && orders.length === 0) {
+        setOrders(DEMO_ORDERS);
+        setDemoMode(true);
+        setLastSync(new Date().toISOString());
+      }
+      setError(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [demoMode, orders.length]);
 
   const updateOrderStatus = async (orderId, status) => {
+    if (demoMode) {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+      );
+      return;
+    }
     try {
       const res = await fetch("/api/orders", {
         method: "PUT",
@@ -180,6 +259,8 @@ export default function KitchenOrders() {
           <span class="sync-text">
             {error
               ? "מנותק"
+              : demoMode
+              ? `מצב הדגמה | iPlan ${lastSync ? formatTime(lastSync) : ""}`
               : `מסונכרן עם iPlan ${
                   lastSync
                     ? "| " + formatTime(lastSync)
